@@ -1,0 +1,74 @@
+<html>
+
+<head>
+  <title>Duration Heatmap</title>
+  <meta charset="UTF-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <link href="https://cdn.jsdelivr.net/gh/volca/markdown-preview/theme/YetAnotherGithub.css" rel="stylesheet" />
+  <style>
+    @media screen and (min-width: 1280px) {
+      body {
+        width: 1240px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+  <script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.18.5/babel.min.js"></script>
+</head>
+
+<body>
+
+  <div id="root"></div>
+  <script>const data = __FIXME__;</script>
+
+  <script type="text/babel">
+    function Pod(props) {
+      const { render, style } = props;
+      const [id] = React.useState('pod-' + window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16));
+      React.useEffect(() => { render(id); });
+      return <div id={id} style={style}></div>
+    }
+  </script>
+  <script type="text/babel">
+
+    function HeatmapGroup(props) {
+      return (
+        <div>
+          <h2>{props.data.id}</h2>
+          <p>{props.data.expr}</p>
+          {props.data.vec.filter(it => !it.empty).map(it => {
+            const key = Object.entries(it.metric).map(it => `${it[0]}=${it[1]}`).join(' ');
+            return <div key={key}><p><b>{key}</b></p><Pod render={id => {
+              Plotly.newPlot(id, [
+                {
+                  x: props.data.x.map(v => new Date(v*1000)),
+                  y: props.data.y.map(v => `< ${v}`),
+                  z: it.z,
+                  type: 'heatmap',
+                  hoverongaps: false
+                }
+              ], { margin: {t: 0}});
+            }}/></div>
+          })}
+        </div>
+      )
+    }
+
+    (function () {
+      ReactDOM.render((
+        <div className="container">
+          <h1>Duration Heatmap</h1>
+          <p>endpoint: <a href="{data.meta.prom.endpoint}">{data.meta.prom.endpoint}</a>, start: {data.meta.start}, end: {data.meta.end}, step: {data.meta.step}</p>
+          {data.duration_heatmap.map(data => <HeatmapGroup key={data.id} data={data}/>)}
+
+        </div>
+      ), document.getElementById('root'));
+    })();
+  </script>
+
+</body>
+
+</html>

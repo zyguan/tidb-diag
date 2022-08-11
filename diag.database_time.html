@@ -1,0 +1,96 @@
+<html>
+
+<head>
+  <title>Database Time</title>
+  <meta charset="UTF-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <link href="https://cdn.jsdelivr.net/gh/volca/markdown-preview/theme/YetAnotherGithub.css" rel="stylesheet" />
+  <style>
+    @media screen and (min-width: 1280px) {
+      body {
+        width: 1240px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+  <!-- <script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.18.5/babel.min.js"></script>
+</head>
+
+<body>
+
+  <div id="root"></div>
+  <script>const data = __FIXME__;</script>
+
+  <script type="text/babel">
+    function Pod(props) {
+      const { render, style } = props;
+      const [id] = React.useState('pod-' + window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16));
+      React.useEffect(() => { render(id); });
+      return <div id={id} style={style}></div>
+    }
+  </script>
+  <script type="text/babel">
+    (function () {
+      const tidb_total = data.database_time.tidb.filter(m => m.parent == undefined).reduce((acc, it) => acc + it.value, 0);
+      const tikv_total = data.database_time.tikv.filter(m => m.parent == undefined).reduce((acc, it) => acc + it.value, 0);
+
+      const tidb_hierarchy = data.database_time.tidb.reduce((acc, it) => { acc[it.id] = it.parent; return acc; }, {});
+      const tikv_hierarchy = data.database_time.tikv.reduce((acc, it) => { acc[it.id] = it.parent; return acc; }, {});
+
+      function indent(hierarchy, name) {
+        if (hierarchy[name] === undefined) {
+          return ''
+        } else {
+          return '\u00A0\u00A0' + indent(hierarchy, hierarchy[name])
+        }
+      }
+
+      ReactDOM.render((
+        <div className="container">
+          <h1>Database Time</h1>
+          <p>endpoint: <a href="{data.meta.prom.endpoint}">{data.meta.prom.endpoint}</a>, time: {data.meta.time}, interval: {data.meta.interval}</p>
+          <h2>TiDB</h2>
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>Parent</th>
+              <th>DB Time</th>
+              <th style={{ 'text-align': 'right' }}>%</th>
+            </tr>
+            {data.database_time.tidb.filter(m => m.value >= 0.0005).map(m => (
+              <tr key={m.id}>
+                <td>{indent(tidb_hierarchy, m.id) + m.id}</td>
+                <td>{m.parent || '-'}</td>
+                <td style={{ 'text-align': 'right' }}>{m.value.toFixed(3)}</td>
+                <td style={{ 'text-align': 'right' }}>{(m.value/tidb_total*100).toFixed(2)}</td>
+              </tr>
+            ))}
+          </table>
+          <h2>TiKV</h2>
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>Parent</th>
+              <th>DB Time</th>
+              <th style={{ 'text-align': 'right' }}>%</th>
+            </tr>
+            {data.database_time.tikv.filter(m => m.value >= 0.0005).map(m => (
+              <tr key={m.id}>
+                <td>{indent(tikv_hierarchy, m.id) + m.id}</td>
+                <td>{m.parent || '-'}</td>
+                <td style={{ 'text-align': 'right' }}>{m.value.toFixed(3)}</td>
+                <td style={{ 'text-align': 'right' }}>{(m.value/tikv_total*100).toFixed(2)}</td>
+              </tr>
+            ))}
+          </table>
+        </div>
+      ), document.getElementById('root'));
+    })();
+  </script>
+
+</body>
+
+</html>
