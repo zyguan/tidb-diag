@@ -31,6 +31,9 @@ module.exports.Transform = {
     },
     toHeatmapVec(rate = false) {
       return result => {
+        if (result.length == 0) {
+          return {x: [], y: [], vec: []};
+        }
         const x = result[0].values.map(x => x[0]);
         const y = [...new Set(result.map(m => m.metric.le))].sort((a, b) => b - a).reverse();
         const idx = {};

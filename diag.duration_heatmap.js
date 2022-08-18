@@ -4,12 +4,40 @@ const prom = require('./prom');
 function duration_heatmap(selector = '') {
     return [
         {
+            id: 'query.slow',
+            expr: `sum by (le) (tidb_server_slow_query_process_duration_seconds_bucket{${selector}})`,
+        },
+        {
             id: 'query',
             expr: `sum by (le, sql_type) (tidb_server_handle_query_duration_seconds_bucket{${selector}})`,
         },
         {
+            id: 'copr',
+            expr: `sum by (le) (tidb_tikvclient_cop_duration_seconds_bucket{${selector}})`
+        },
+        {
             id: 'kvreq',
             expr: `sum by (le, type) (tidb_tikvclient_request_seconds_bucket{${selector}})`,
+        },
+        {
+            id: 'kvreq.store',
+            expr: `sum by (le, store) (tidb_tikvclient_request_seconds_bucket{${selector}})`,
+        },
+        {
+            id: 'kvreq.backoff',
+            expr: `sum by (le, type) (tidb_tikvclient_backoff_seconds_bucket{${selector}})`,
+        },
+        {
+            id: 'kvreq.batch.wait',
+            expr: `sum by (le) (tidb_tikvclient_batch_wait_duration_bucket{${selector}})`,
+        },
+        {
+            id: 'kvreq.batch.send',
+            expr: `sum by (le) (tidb_tikvclient_batch_send_latency_bucket{${selector}})`,
+        },
+        {
+            id: 'kvreq.batch.recv',
+            expr: `sum by (le) (tidb_tikvclient_batch_recv_latency_bucket{${selector}})`,
         },
         {
             id: 'kvrpc.read',
@@ -21,7 +49,7 @@ function duration_heatmap(selector = '') {
         },
         {
             id: 'raft.propose-wait',
-            expr: `sum by (le) (tikv_raftstore_store_wf_batch_wait_duration_seconds_bucket{${selector}})`,
+            expr: `sum by (le) (tikv_raftstore_request_wait_time_duration_secs_bucket{${selector}})`,
         },
         {
             id: 'raft.apply-wait',
