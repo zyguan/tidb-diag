@@ -61,7 +61,7 @@
       ReactDOM.render((
         <div className="container">
           <h1>Duration Heatmap</h1>
-          <p>endpoint: <a href="{data.meta.prom.endpoint}">{data.meta.prom.endpoint}</a>, start: {data.meta.start}, end: {data.meta.end}, step: {data.meta.step}</p>
+          <p>endpoint: <a href={data.meta.prom.endpoint}>{data.meta.prom.endpoint}</a>, start: {data.meta.start}, end: {data.meta.end}, step: {data.meta.step}</p>
           {data.duration_heatmap.map(data => <HeatmapGroup key={data.id} data={data}/>)}
         </div>
       ), document.getElementById('root'));
