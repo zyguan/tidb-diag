@@ -1,9 +1,34 @@
+const get = require('http').get
+
+function getFetchFn() {
+  if (typeof(fetch) === 'function') return fetch
+  return async function(url, init) {
+    return new Promise((resolve, reject) => {
+      get(url, init, (res) => {
+        const data = []
+        res.on('data', chunk => {
+          data.push(chunk)
+        })
+        res.on('end', () => {
+          resolve(new function() {
+            this.data = data
+            this.json = () => JSON.parse(Buffer.concat(data).toString())
+          } ())
+        })
+      }).on('error', (e) => {
+        reject(e)
+      })
+    })
+  }
+}
+
 module.exports.Client = class PromClient {
   constructor(endpoint, headers = {}) {
     this.endpoint = endpoint;
     this.headers = headers;
   }
   queryInstant(params) {
+    const fetch = getFetchFn()
     return fetch(`${this.endpoint}/api/v1/query?${new URLSearchParams(params).toString()}`, { headers: this.headers })
       .then(resp => resp.json())
       .then(body => {
@@ -12,6 +37,7 @@ module.exports.Client = class PromClient {
       });
   }
   queryRange(params) {
+    const fetch = getFetchFn()
     return fetch(`${this.endpoint}/api/v1/query_range?${new URLSearchParams(params).toString()}`, { headers: this.headers })
       .then(resp => resp.json())
       .then(body => {

@@ -18,4 +18,14 @@ module.exports = {
         end: 1659533700,
         step: 15,
     },
+    stmt_duration: {
+        prom: {
+            endpoint: 'http://127.0.0.1:9090',
+            headers: {},
+        },
+        selector: 'tidb_cluster=""',
+        interval: '3m',
+        prefix: '',
+        time: 1659533400,
+    }
 }
